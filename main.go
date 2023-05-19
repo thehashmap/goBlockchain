@@ -41,7 +41,7 @@ type Blockchain struct {
 	blocks []*Block
 }
 
-var Blockchain *Blockchain
+var BlockChain *Blockchain
 
 func (b *Block) generateHash(){
 	bytes, _  := json.Marshal(b.Data)
@@ -102,13 +102,13 @@ func (b *Block) validateHash(hash string) bool {
 func writeBlock(w http.ResponseWriter, r *http.Request) {
 	var checkoutItem BookCheckout
 
-	if err := json.NewDecoder(r.Body).Decode(&checkoutItem): err != nil {
-		r.WriteHeader(http.StatusInternalServerError)
+	if err := json.NewDecoder(r.Body).Decode(&checkoutItem); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		log.Printf("could not write block: %v", err)
 		w.Write([]byte("could not write block"))
 	}
 
-	Blockchain.AddBlock(checkoutItem)
+	BlockChain.AddBlock(checkoutItem)
 }
 
 func newBook(w http.ResponseWriter, r *http.Request) {
@@ -146,14 +146,14 @@ func NewBlockchain() *Blockchain{
 
 func main() {
 
-	Blockchain = NewBlockchain()
+	BlockChain = NewBlockchain()
 	r := mux.NewRouter()
 	r.HandleFunc("/", getBlockchain).Methods("GET")
 	r.HandleFunc("/", writeBlock).Methods("POST")
 	r.HandleFunc("/new", newBook).Methods("POST")
 
-	go func ()  {
-		for _, block := range Blockchain.blocks{
+	go func () {
+		for _, block := range BlockChain.blocks{
 			fmt.Printf("Prev hash: %x\n", block.PrevHash)
 			bytes, _ := json.MarshalIndent(block.Data, "", " ")
 			fmt.Printf("Data: %v\n", string(bytes))
