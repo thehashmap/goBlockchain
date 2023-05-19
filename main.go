@@ -109,7 +109,17 @@ func newBook(w http.ResponseWriter, r *http.Request) {
 	w.Write(resp)
 }
 
+func GenesisBlock() *Block{
+	return CreateBlock(&Block{}, BookCheckout{IsGenesis: true})
+}
+
+func NewBlockchain() *Blockchain{
+	return &Blockchain{[]*Block{GenesisBlock()}}
+}
+
 func main() {
+
+	Blockchain = NewBlockchain()
 	r := mux.NewRouter()
 	r.HandleFunc("/", getBlockchain).Methods("GET")
 	r.HandleFunc("/", writeBlock).Methods("POST")
