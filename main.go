@@ -88,6 +88,17 @@ func validBlock(block, prevBlock *Block) bool {
 	return true
 }
 
+
+func (b *Block) validateHash(hash string) bool {
+	b.generateHash()
+	if b.Hash != hash {
+		return false
+	}
+
+	return true
+}
+
+
 func writeBlock(w http.ResponseWriter, r *http.Request) {
 	var checkoutItem BookCheckout
 
@@ -140,6 +151,16 @@ func main() {
 	r.HandleFunc("/", getBlockchain).Methods("GET")
 	r.HandleFunc("/", writeBlock).Methods("POST")
 	r.HandleFunc("/new", newBook).Methods("POST")
+
+	go func ()  {
+		for _, block := range Blockchain.blocks{
+			fmt.Printf("Prev hash: %x\n", block.PrevHash)
+			bytes, _ := json.MarshalIndent(block.Data, "", " ")
+			fmt.Printf("Data: %v\n", string(bytes))
+			fmt.Printf("Hash: %x\n", block.Hash)
+			fmt.Println()
+		}
+	}
 
 	log.Println("Listening on port 3000")
 
