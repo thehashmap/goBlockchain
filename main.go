@@ -72,6 +72,22 @@ func (bc *Blockchain)AddBlock(data BookCheckout){
 	}
 }
 
+func validBlock(block, prevBlock *Block) bool {
+	if prevBlock.Hash != block.PrevHash {
+		return false
+	}
+
+	if !block.validateHash(block.Hash){
+		return false
+	}
+
+	if prevBlock.Pos + 1 != block.Pos {
+		return false
+	}
+
+	return true
+}
+
 func writeBlock(w http.ResponseWriter, r *http.Request) {
 	var checkoutItem BookCheckout
 
