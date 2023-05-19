@@ -43,8 +43,8 @@ type Blockchain struct {
 
 var BlockChain *Blockchain
 
-func (b *Block) generateHash(){
-	bytes, _  := json.Marshal(b.Data)
+func (b *Block) generateHash() {
+	bytes, _ := json.Marshal(b.Data)
 
 	data := string(b.Pos) + b.TimeStamp + string(bytes) + b.PrevHash
 
@@ -62,12 +62,12 @@ func CreateBlock(prevBlock *Block, checkoutItem BookCheckout) *Block {
 	return block
 }
 
-func (bc *Blockchain)AddBlock(data BookCheckout){
-	prevBlock := bc.blocks[len(bc.blocks) - 1]
+func (bc *Blockchain) AddBlock(data BookCheckout) {
+	prevBlock := bc.blocks[len(bc.blocks)-1]
 
 	block := CreateBlock(prevBlock, data)
 
-	if validBlock(block, prevBlock){
+	if validBlock(block, prevBlock) {
 		bc.blocks = append(bc.blocks, block)
 	}
 }
@@ -77,11 +77,11 @@ func validBlock(block, prevBlock *Block) bool {
 		return false
 	}
 
-	if !block.validateHash(block.Hash){
+	if !block.validateHash(block.Hash) {
 		return false
 	}
 
-	if prevBlock.Pos + 1 != block.Pos {
+	if prevBlock.Pos+1 != block.Pos {
 		return false
 	}
 
@@ -93,7 +93,7 @@ func (b *Block) validateHash(hash string) bool {
 	b.generateHash()
 	if b.Hash != hash {
 		return false
-	}
+}
 
 	return true
 }
@@ -136,12 +136,22 @@ func newBook(w http.ResponseWriter, r *http.Request) {
 	w.Write(resp)
 }
 
-func GenesisBlock() *Block{
+func GenesisBlock() *Block {
 	return CreateBlock(&Block{}, BookCheckout{IsGenesis: true})
 }
 
-func NewBlockchain() *Blockchain{
+func NewBlockchain() *Blockchain {
 	return &Blockchain{[]*Block{GenesisBlock()}}
+}
+
+func getBlockchain(w http.ResponseWriter, r *http.Request) {
+	jbytes, err := json.MarshalIndent(BlockChain.blocks, "", " ")
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(err)
+		return
+	}
+	io.WriteString(w, string(jbytes))
 }
 
 func main() {
@@ -152,8 +162,8 @@ func main() {
 	r.HandleFunc("/", writeBlock).Methods("POST")
 	r.HandleFunc("/new", newBook).Methods("POST")
 
-	go func () {
-		for _, block := range BlockChain.blocks{
+	go func() {
+		for _, block := range BlockChain.blocks {
 			fmt.Printf("Prev hash: %x\n", block.PrevHash)
 			bytes, _ := json.MarshalIndent(block.Data, "", " ")
 			fmt.Printf("Data: %v\n", string(bytes))
